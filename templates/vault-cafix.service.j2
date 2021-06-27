@@ -1,0 +1,9 @@
+[Unit]
+After=local-fs.target network.target
+Description=Refresh vault CRLs
+
+[Service]
+Type=oneshot
+ExecStart=/etc/vault-agent.d/cafix.sh
+User=vault
+Group=vault

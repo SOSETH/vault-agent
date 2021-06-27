@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# This script needs to exit with 0 or vault will regenerate the secret!
+set +e
+
+{% for item in vault_certs %}
+if [ "$1" == "{{ item.name }}" ] ; then
+{% if 'pem' in item %}
+  chown {{ item.owner }}:{{ item.group }} {{ item.pem }}
+  chmod 0640 {{ item.pem }}
+  setfacl -m 'u:vault:rw' {{ item.pem }}
+{% endif %}
+{% if 'key' in item %}
+  chown {{ item.owner }}:{{ item.group }} {{ item.key }}
+  chmod 0640 {{ item.key }}
+  setfacl -m 'u:vault:rw' {{ item.key }}
+{% endif %}
+{% if 'ca' in item %}
+  chown {{ item.owner }}:{{ item.group }} {{ item.ca }}
+  chmod 0640 {{ item.ca }}
+  setfacl -m 'u:vault:rw' {{ item.ca }}
+{% endif %}
+{% if 'crl' in item %}
+  chown {{ item.owner }}:{{ item.group }} {{ item.crl }}
+  chmod 0640 {{ item.crl }}
+  setfacl -m 'u:vault:rw' {{ item.crl }}
+{% endif %}
+{% if 'pem_with_key' in item %}
+  chown {{ item.owner }}:{{ item.group }} {{ item.pem_with_key }}
+  chmod 0640 {{ item.pem_with_key }}
+  setfacl -m 'u:vault:rw' {{ item.pem_with_key }}
+{% endif %}
+{% if 'command' in item %}
+  {{ item.command }}
+{% endif %}
+fi
+{% endfor %}
+
+exit 0

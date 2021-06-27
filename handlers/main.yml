@@ -1,0 +1,15 @@
+- name: restart vault-agent
+  become: True
+  service:
+    daemon_reload: yes
+    name: vault-agent
+    state: restarted
+    enabled: yes
+
+- name: reload timer
+  become: True
+  systemd:
+    daemon_reload: yes
+    name: vault-cafix.timer
+    enabled: yes
+    state: started

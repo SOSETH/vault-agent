@@ -1,0 +1,27 @@
+# URL of your vault server
+vault_server: "https://vault.example.org"
+# Whether you need client certs to connect to that server
+c: False
+
+# List of directories that we put certs in. This is used to make sure that they exist beforehand
+vault_cert_dirs: []
+
+# List of certs to request via the agent
+vault_certs: []
+#  - name: prom-write
+#    type: client
+#    pem: /etc/grafana-agent/client.pem
+#    key: /etc/grafana-agent/client.key
+#    ca: /etc/grafana-agent/client-ca.pem
+#    restart: systemctl restart grafana-agent
+#    cn: "{{ ansible_fqdn }}"
+
+# Kerberos realm to auth to
+vault_autoauth_krb_realm: EXAMPLE.ORG
+
+# List all CA's here that you want to have their CRLs regenerated on a schedule (hashicorp/vault#3827 states that not
+# making a new CRL when no cert has been revoked is a feature, however, an awful lot of client software (aka openssl)
+# disagrees with that statement and instead refuses to accept an old CRL).
+# The proposed workaround is to regenerate the CRL on a cronjob, which is what this feature will do (around midnight)
+vault_bug_3827_workaround: []
+vault_bug_3827_connect_addr: "https://{{ ansible_fqdn }}:8443"

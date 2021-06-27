@@ -1,0 +1,80 @@
+# Managed by ansible (role: vault-agent), do not edit!
+
+vault {
+  address = "{{ vault_server }}"
+{% if vault_have_certs %}
+  ca_cert = "/etc/vault-agent.d/ca.pem"
+  client_cert = "/etc/vault-agent.d/client.pem"
+  client_key = "/etc/vault-agent.d/client.key"
+{% endif %}
+}
+
+auto_auth {
+  method "kerberos" {
+    config = {
+      krb5conf_path = "/etc/krb5.conf"
+      keytab_path = "/etc/krb5.keytab"
+      service = "vaultbind"
+      realm = "{{ vault_autoauth_krb_realm }}"
+      username = "host/{{ ansible_fqdn }}"
+    }
+  }
+
+  sink "file" {
+    config = {
+      path = "/var/lib/vault-agent/token"
+      mode = 0400
+    }
+  }
+}
+
+{% for item in vault_certs %}
+{% if 'crl' in item %}
+template {
+  contents = "{{ "{{" }} with secret \"pki/{{ item.name }}/cert/crl\" {{ "}}{{ .Data.certificate }}{{ end }}" }}"
+  destination = "{{ item.crl }}"
+  {% if 'command' in item %}command = "sudo /etc/vault-agent.d/runner.sh {{ item.name }}"
+{% endif %}
+}
+{% endif %}
+{% if 'pem_with_key' in item %}
+template {
+  contents = "{{ "{{" }} with secret \"pki/{{ item.name }}/issue/{{ item.type }}\" \"common_name={{ item.cn }}\"
+{%- if 'ip_sans' in item %} \"ip_sans={{ item.ip_sans }}\" {% endif -%}
+{%- if 'dns_sans' in item %} \"alt_names={{ item.dns_sans }}\" {% endif -%}
+   {{ "}}{{ .Data.certificate }}\\n{{ .Data.private_key }}{{ end }}" }}"
+  destination = "{{ item.pem_with_key }}"
+  {% if 'command' in item %}command = "sudo /etc/vault-agent.d/runner.sh {{ item.name }}"
+{% endif %}
+}
+{% endif %}
+{% if 'pem' in item %}
+template {
+  contents = "{{ "{{" }} with secret \"pki/{{ item.name }}/issue/{{ item.type }}\" \"common_name={{ item.cn }}\"
+{%- if 'ip_sans' in item %} \"ip_sans={{ item.ip_sans }}\" {% endif -%}
+{%- if 'dns_sans' in item %} \"alt_names={{ item.dns_sans }}\" {% endif -%}
+   {{ "}}{{ .Data.certificate }}{{ end }}" }}"
+  destination = "{{ item.pem }}"
+  {% if 'command' in item %}command = "sudo /etc/vault-agent.d/runner.sh {{ item.name }}"
+{% endif %}
+}
+{% endif %}
+{% if 'key' in item %}
+template {
+  contents    = "{{ "{{" }} with secret \"pki/{{ item.name }}/issue/{{ item.type }}\" \"common_name={{ item.cn }}\"
+{%- if 'ip_sans' in item %} \"ip_sans={{ item.ip_sans }}\" {% endif -%}
+{%- if 'dns_sans' in item %} \"alt_names={{ item.dns_sans }}\" {% endif -%}
+    {{ "}}{{ .Data.private_key }}{{ end }}" }}"
+  destination = "{{ item.key }}"
+}
+{% endif %}
+{% if 'ca' in item %}
+template {
+  contents    = "{{ "{{" }} with secret \"pki/{{ item.name }}/issue/{{ item.type }}\" \"common_name={{ item.cn }}\"
+{%- if 'ip_sans' in item %} \"ip_sans={{ item.ip_sans }}\" {% endif -%}
+{%- if 'dns_sans' in item %} \"alt_names={{ item.dns_sans }}\" {% endif -%}
+    {{ "}}{{ .Data.issuing_ca }}{{ end }}" }}"
+  destination = "{{ item.ca }}"
+}
+{% endif %}
+{% endfor %}

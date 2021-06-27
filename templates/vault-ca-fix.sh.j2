@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -e
+
+touch /var/lib/vault-agent/header
+chmod 0600 /var/lib/vault-agent/header
+echo -n "Authorization: Bearer " > /var/lib/vault-agent/header
+cat /var/lib/vault-agent/token >> /var/lib/vault-agent/header
+
+{% for item in vault_bug_3827_workaround %}
+curl -H @/var/lib/vault-agent/header "{{ vault_bug_3827_connect_addr }}/v1/pki/{{ item }}/crl/rotate"
+{% endfor %}

@@ -1,0 +1,10 @@
+[Unit]
+Description=Refresh vault CRLs
+
+[Timer]
+OnCalendar=*-*-* 00:00:00
+RandomizedDelaySec=7200
+AccuracySec=60
+
+[Install]
+WantedBy=timers.target

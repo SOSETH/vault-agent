@@ -1,0 +1,121 @@
+- name: Install vault
+  become: True
+  apt:
+    state: present
+    update_cache: yes
+    cache_valid_time: 1800
+    name:
+      - vault
+      # Required for setfacl
+      - acl
+
+- name: Create vault agent paths
+  become: True
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: vault
+    group: root
+    mode: 0750
+  with_items:
+    - /etc/vault-agent.d
+    - /etc/vault-agent.d/template
+    - /var/lib/vault-agent
+
+- name: Configure vault agent
+  become: True
+  template:
+    src: vault.hcl.j2
+    dest: /etc/vault-agent.d/vault.hcl
+    owner: root
+    group: vault
+    mode: 0640
+  notify: restart vault-agent
+
+- name: Configure vault agent service
+  become: True
+  template:
+    src: systemd.service.j2
+    dest: /etc/systemd/system/vault-agent.service
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart vault-agent
+
+- name: Configure vault agent runner file
+  become: True
+  template:
+    src: runner.sh.j2
+    dest: /etc/vault-agent.d/runner.sh
+    owner: root
+    group: vault
+    mode: 0755
+
+- name: Allow vault-user to execute the runner file with sudo
+  become: True
+  lineinfile:
+    dest: "/etc/sudoers"
+    state: present
+    regexp: '^vault'
+    line: 'vault ALL=(ALL) NOPASSWD: /etc/vault-agent.d/runner.sh'
+
+- name: Ensure vault can access the kerberos keytab
+  become: True
+  acl:
+    path: /etc/krb5.keytab
+    entity: vault
+    etype: user
+    permissions: r
+    state: present
+
+- name: Check whether vault agent certificate target directories exist
+  become: True
+  with_items: "{{ vault_cert_dirs }}"
+  stat:
+    path: "{{ item }}"
+  register: certdirs
+
+- name: Create vault agent certificate target directories
+  become: True
+  with_items: "{{ certdirs.results }}"
+  when: not (item.stat.isdir is defined and item.stat.isdir)
+  file:
+    path: "{{ item.item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0770
+
+- name: Ensure vault can access the target directories
+  become: True
+  with_items: "{{ certdirs.results }}"
+  acl:
+    path: "{{ item.item }}"
+    entity: vault
+    etype: user
+    permissions: rwx
+    state: present
+
+- name: Configure Bug 3827 workaround script
+  when: vault_bug_3827_workaround != []
+  become: True
+  template:
+    src: vault-ca-fix.sh.j2
+    dest: /etc/vault-agent.d/cafix.sh
+    owner: vault
+    group: vault
+    mode: 0750
+
+- name: Configure Bug 3827 workaround service
+  when: vault_bug_3827_workaround != []
+  become: True
+  template:
+    src: "{{ item }}.j2"
+    dest: "/etc/systemd/system/{{ item }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - vault-cafix.service
+    - vault-cafix.timer
+  notify: reload timer
