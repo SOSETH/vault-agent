@@ -25,3 +25,7 @@ vault_autoauth_krb_realm: EXAMPLE.ORG
 # The proposed workaround is to regenerate the CRL on a cronjob, which is what this feature will do (around midnight)
 vault_bug_3827_workaround: []
 vault_bug_3827_connect_addr: "https://{{ ansible_fqdn }}:8443"
+
+# Currently the vault agent has trouble renewing kerberos tickets at least some of the time. This option turns on a
+# timer to restart the agent every 4 to 6 hours, to hopefully avoid this issue until it can be fixed properly.
+vault_agent_periodic_restart: False

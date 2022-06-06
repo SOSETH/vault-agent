@@ -13,3 +13,11 @@
     name: vault-cafix.timer
     enabled: yes
     state: started
+
+- name: reload restart timer
+  become: True
+  systemd:
+    daemon_reload: yes
+    name: vault-agent-restart.timer
+    enabled: yes
+    state: started

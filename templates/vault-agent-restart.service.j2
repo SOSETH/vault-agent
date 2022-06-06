@@ -1,0 +1,7 @@
+[Unit]
+After=local-fs.target network.target
+Description=Refresh vault-agent
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/systemctl restart vault-agent
