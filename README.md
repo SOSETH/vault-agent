@@ -44,6 +44,7 @@ Vault does currently not generate a new CRL if a new CRL wouldn't contain new in
 revoked, your CRL will eventually "expire". Tools that use openssl (e.g. HAProxy) will then simply mark all requests as
 invalid - so this workaround will rotate all listed CA's CRLs around midnight. You'll need to make sure that the node
 has a policy assigned that allows it to do `pki/<name>/crl/rotate`.
+Rolled into this workaround is also a script to call `pki/<name>/tidy` - so make sure you include that in your permissions aswell.
 
 ## Dependencies
 Due to the nature of the agent, this role requires all filesystems you want to put certificates on to support

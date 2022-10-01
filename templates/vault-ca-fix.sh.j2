@@ -9,4 +9,8 @@ cat /var/lib/vault-agent/token >> /var/lib/vault-agent/header
 
 {% for item in vault_bug_3827_workaround %}
 curl -H @/var/lib/vault-agent/header "{{ vault_bug_3827_connect_addr }}/v1/pki/{{ item }}/crl/rotate"
+echo "Last tidy:"
+curl -H @/var/lib/vault-agent/header "{{ vault_bug_3827_connect_addr }}/v1/pki/{{ item }}/tidy-status"
+echo "Next tidy:"
+curl -H @/var/lib/vault-agent/header --data '{"tidy_cert_store": true, "tidy_revoked_certs": true}' "{{ vault_bug_3827_connect_addr }}/v1/pki/{{ item }}/tidy"
 {% endfor %}

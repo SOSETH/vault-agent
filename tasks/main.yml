@@ -16,7 +16,7 @@
     state: directory
     owner: vault
     group: root
-    mode: 0750
+    mode: '0750'
   with_items:
     - /etc/vault-agent.d
     - /etc/vault-agent.d/template
@@ -29,7 +29,7 @@
     dest: /etc/vault-agent.d/vault.hcl
     owner: root
     group: vault
-    mode: 0640
+    mode: '0640'
   notify: restart vault-agent
 
 - name: Configure vault agent service
@@ -49,7 +49,7 @@
     dest: /etc/vault-agent.d/runner.sh
     owner: root
     group: vault
-    mode: 0755
+    mode: '0755'
 
 - name: Allow vault-user to execute the runner file with sudo
   become: True
@@ -84,7 +84,7 @@
     state: directory
     owner: root
     group: root
-    mode: 0770
+    mode: '0770'
 
 - name: Ensure vault can access the target directories
   become: True
@@ -104,7 +104,7 @@
     dest: /etc/vault-agent.d/cafix.sh
     owner: vault
     group: vault
-    mode: 0750
+    mode: '0750'
 
 - name: Configure Bug 3827 workaround service
   when: vault_bug_3827_workaround != []
